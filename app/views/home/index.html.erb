@@ -1,0 +1,154 @@
+<div class="row-fluid">
+  <div class="span3">
+	<ul class="nav nav-tabs nav-stacked">
+	  <li><a id="example-a-link" href="#">Vista normal</a></li>
+	  <li><a id="example-b-link" href="#">Filtrar con extent</a></li>
+	  <li><a id="example-c-link" href="#">Filtrar con mujeres por sld</a></li>
+	  <li><a id="example-d-link" href="#">Filtrar con hombres por sld</a></li>
+	  <li><a id="example-e-link" href="#">Colorear por género</a></li>
+	  <li><a id="example-f-link" href="#">Dibujar puntos con OpenLayers</a></li>
+	  <li><a id="example-g-link" href="#">Cambiar estilos x zoom</a></li>
+	  <li><a id="example-h-link" href="#">Distancia entre dos puntos</a></li>
+	</ul>
+
+	<div class="input-append">
+	  <input class="span6" id="age-input" type="text" placeholder="Ingrese edad...">
+	  <button class="btn" id="age-filter-btn" type="button">Mustache!</button>
+	</div>
+
+	<div id="result"></div>
+  </div>
+  <div class="span9">
+	<div id="map" class="span12">
+	</pre>
+  </div>
+</div>
+
+<script type="text/javascript">
+	var wmsUrl = "http://localhost:8080/geoserver/wms",
+		wmsLayer = null,
+		mapObject = null,
+		baseLayer = null;
+
+	var setCenter = function() {
+		mapObject.setCenter(new OpenLayers.LonLat(-70.6503, -33.439).transform(
+			new OpenLayers.Projection("EPSG:4326"),
+			new OpenLayers.Projection("EPSG:900913")), 10);
+	};
+
+	var bindExampleBtnsClick = function() {
+		$("#example-a-link").click(function(e) {
+			e.preventDefault();
+			showWmsLayer();
+		});
+
+		$("#example-b-link").click(function(e) {
+			e.preventDefault();
+			showWmsLayer({cql_filter: "BBOX(the_geom, 100, 40, -100, -40)"});
+		});
+
+		$("#example-c-link").click(function(e) {
+			e.preventDefault();
+			showWmsLayer({styles: "female_point"});
+		});
+
+		$("#example-d-link").click(function(e) {
+			e.preventDefault();
+			showWmsLayer({styles: "male_point"});
+		});
+
+		$("#example-e-link").click(function(e) {
+			e.preventDefault();
+			showWmsLayer({styles: "gender_point"});
+		});
+
+		$("#example-f-link").click(function(e) {
+			e.preventDefault();
+			getPoints();
+		});
+
+		$("#example-g-link").click(function(e) {
+			e.preventDefault();
+			showWmsLayer({styles: "zoom_point"});
+		});
+
+		$("#example-h-link").click(function(e) {
+			e.preventDefault();
+			$.get("home/distance", function(data) {
+				var result = "" +
+				"<div>Cliente 1: lat: " + data["one"]["lat"] + " lon: " + data["one"]["lon"] + "</div>" +
+				"<div>Cliente 2: lat: " + data["two"]["lat"] + " lon: " + data["two"]["lon"] + "</div>" +
+				"<div>distancia: " + data["distance"] + "</div>"
+				$("#result").html(result);
+			});
+		});
+
+		$("#age-filter-btn").click(function(e) {
+			e.preventDefault();
+			showWmsLayer({styles: "label_point", cql_filter: ("age > " + $("#age-input").val())})
+		});
+	};
+
+	var getPoints = function() {
+		$.get("home/points", function(points) {
+				var features = []
+        var vectorLayer = new OpenLayers.Layer.Vector("Vector layer", {projection: new OpenLayers.Projection("EPSG:900913")});
+
+        for(var i = 0; i < points.length; i++){
+            var geom = new OpenLayers.Geometry.fromWKT(points[i]["the_geom"]);
+            var pointFeature = new OpenLayers.Feature.Vector(geom.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913")), null, null);
+            features.push(pointFeature);
+        }
+
+      	mapObject.addLayer(vectorLayer);
+        vectorLayer.addFeatures(features);
+        vectorLayer.refresh();
+		});
+	};
+
+	var removeWmsLayer = function() {
+		if (wmsLayer) {
+			mapObject.removeLayer(wmsLayer);
+			delete wmsLayer;
+		}
+	};
+
+	var showWmsLayer = function(options) {
+		removeWmsLayer();
+
+		var defaultOptions = {
+			srs: "EPSG:4326",
+			layers: "geoapp:clients",
+			format: "image/png",
+			tiled: true,
+			transparent: true,
+		}
+
+		var mergedOptions = $.extend(defaultOptions, options);
+
+		wmsLayer = new OpenLayers.Layer.WMS("geoapp:clients", wmsUrl, mergedOptions);
+		mapObject.addLayer(wmsLayer);
+	};
+
+	var initMap = function(){
+		mapObject = new OpenLayers.Map({
+			div: 'map',
+			numZoomLevels: 30,
+			projection: "EPSG:900913",
+			maxResolution: 156543,
+			maxExtent: new OpenLayers.Bounds(-20037508,-20037508,20037508,20037508),
+		});
+
+		baseLayer = new OpenLayers.Layer.OSM();
+		mapObject.addLayer(baseLayer);
+
+		mapObject.addControl(new OpenLayers.Control.LayerSwitcher({'ascending':false}));
+		mapObject.addControl(new OpenLayers.Control.OverviewMap());
+		mapObject.addControl(new OpenLayers.Control.KeyboardDefaults());
+
+		setCenter();
+	};
+
+	bindExampleBtnsClick();
+	initMap();
+</script>

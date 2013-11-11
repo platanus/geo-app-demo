@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  name: MyString
+  age: 1
+  gender: MyString
+  salary: 9.99
+  the_geom: 
+
+two:
+  name: MyString
+  age: 1
+  gender: MyString
+  salary: 9.99
+  the_geom: 

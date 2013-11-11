@@ -1,0 +1,26 @@
+development:
+ adapter: postgis
+ encoding: unicode
+ database: geo_app_dev
+ pool: 5
+ username: postgres
+ password:
+ host: localhost
+
+test:
+ adapter: postgis
+ encoding: unicode
+ database: geo_app_test
+ pool: 5
+ username: postgres
+ password:
+ host: localhost
+
+production:
+ adapter: postgis
+ encoding: unicode
+ database: geo_app
+ pool: 5
+ username: postgres
+ password:
+ host: localhost

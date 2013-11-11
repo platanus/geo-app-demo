@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	  <title>GeoApp</title>
+	  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
+	  <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+	  <%= csrf_meta_tags %>
+	</head>
+	<body>
+		<div class="navbar">
+		  <div class="navbar-inner">
+		    <a class="brand" href="#">GEO APP!!!</a>
+		  </div>
+		</div>
+	  <div class="container">
+			<%= yield %>
+	  </div>
+	</body>
+</html>
